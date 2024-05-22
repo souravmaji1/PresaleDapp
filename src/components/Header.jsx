@@ -9,6 +9,13 @@ import { HamburgerMenu } from "./design/Header";
 import { useState } from "react";
 import AdminSection from './Admin';
 import Logo from '../assets/logo.png';
+import { ConnectButton } from "thirdweb/react";
+import { client } from "../client";
+import { chain } from "../chain";
+import {  getContract, prepareContractCall, sendTransaction, resolveMethod} from "thirdweb";
+import { useActiveAccount } from "thirdweb/react";
+import { useSendTransaction } from "thirdweb/react";
+
 
 const Header = () => {
   const pathname = useLocation();
@@ -120,12 +127,15 @@ const Header = () => {
 
 
 
+<ConnectButton
+        client={client}
+        chain={chain}
+      />
 
 
 
 
-
-        {status !== 'Connected' && (
+    {/*    {status !== 'Connected' && (
         <>
          <Button className="hidden lg:flex"  onClick={connectWallet}>
           Connect Wallet
@@ -139,7 +149,7 @@ const Header = () => {
           Disconnect Wallet
         </Button>
         </>
-        )}
+        )} */}
 
        
 

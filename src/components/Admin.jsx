@@ -22,7 +22,12 @@ const MyPage = () => {
   const [walletaddress, setWalletaddress] = useState("");
   const [tokensend, setTokenSend] = useState("");
 
+  const [referrer, setReferrer] = useState("");
+  const [reffered, setReffered] = useState("");
+
   const [selectedOption, setSelectedOption] = useState(null); // Track selected option
+
+  const [ owner, setOwner] = useState("");
 
   const handleOptionSelect = (option) => {
       setSelectedOption(option); // Update selected option
@@ -79,11 +84,11 @@ const MyPage = () => {
       const signer = provider.getSigner();
   
   
-      const contractaddress = "0x5be5e22728b864cd5a80306e45b4f569ad151f62";
+      const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
       const abi = [
           {
               "type": "function",
-              "name": "setUSDCTokenPrice",
+              "name": "setUSDTTokenPrice",
               "inputs": [
                 {
                   "type": "uint256",
@@ -100,7 +105,7 @@ const MyPage = () => {
       const contract = new ethers.Contract(contractaddress, abi, signer);
   
 
-      const call = await contract.setUSDCTokenPrice(BigInt(usdcprice * 10**18));
+      const call = await contract.setUSDTTokenPrice(usdcprice * 10**6);
       
       console.log(call);
     } catch (error) {
@@ -118,7 +123,7 @@ const MyPage = () => {
         const signer = provider.getSigner();
     
     
-        const contractaddress = "0x5be5e22728b864cd5a80306e45b4f569ad151f62";
+        const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
         const abi = [
           {
               "type": "function",
@@ -151,7 +156,7 @@ const MyPage = () => {
         const signer = provider.getSigner();
     
     
-        const contractaddress = "0x5be5e22728b864cd5a80306e45b4f569ad151f62";
+        const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
         const abi = [
           {
               "type": "function",
@@ -188,7 +193,7 @@ const MyPage = () => {
       const signer = provider.getSigner();
   
   
-      const contractaddress = "0x5be5e22728b864cd5a80306e45b4f569ad151f62";
+      const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
       const abi = [
           {
               "type": "function",
@@ -220,6 +225,150 @@ const MyPage = () => {
   }
   };
 
+  const WithdrawBNB = async () => {
+    try {
+     
+      // Deploy the compiled contract using MetaMask
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+  
+      const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
+      const abi = [
+        {
+          "type": "function",
+          "name": "withdrawbnb",
+          "inputs": [],
+          "outputs": [],
+          "stateMutability": "nonpayable"
+        }
+      ];
+  
+      // Create a contract factory using the ABI and bytecode
+      const contract = new ethers.Contract(contractaddress, abi, signer);
+
+
+      const call = await contract.withdrawbnb();
+      
+      console.log(call);
+    } catch (error) {
+      console.error(error);
+    } 
+  };
+
+  const Withdrawusdt = async () => {
+    try {
+     
+      // Deploy the compiled contract using MetaMask
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+  
+      const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
+      const abi = [
+        {
+          "type": "function",
+          "name": "withdrawUSDT",
+          "inputs": [],
+          "outputs": [],
+          "stateMutability": "nonpayable"
+        }
+      ];
+  
+      // Create a contract factory using the ABI and bytecode
+      const contract = new ethers.Contract(contractaddress, abi, signer);
+
+
+      const call = await contract.withdrawUSDT();
+      
+      console.log(call);
+    } catch (error) {
+      console.error(error);
+    } 
+  };
+
+  const ChangeReferalPercent = async () => {
+    try {
+     
+      // Deploy the compiled contract using MetaMask
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+  
+      const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
+      const abi = [
+        {
+          "type": "function",
+          "name": "setReferralPercentages",
+          "inputs": [
+            {
+              "type": "uint256",
+              "name": "_referrerPercentage",
+              "internalType": "uint256"
+            },
+            {
+              "type": "uint256",
+              "name": "_referredPercentage",
+              "internalType": "uint256"
+            }
+          ],
+          "outputs": [],
+          "stateMutability": "nonpayable"
+        }
+      ];
+  
+      // Create a contract factory using the ABI and bytecode
+      const contract = new ethers.Contract(contractaddress, abi, signer);
+
+
+      const call = await contract.setReferralPercentages(referrer,reffered);
+      
+      console.log(call);
+    } catch (error) {
+      console.error(error);
+    } 
+  };
+
+
+  const CheckOwner = async () => {
+    try {
+
+      // Deploy the compiled contract using MetaMask
+      const provider = new ethers.providers.JsonRpcProvider("https://arb-sepolia.g.alchemy.com/v2/VxvHfhvlHy2ly374gfdNFveXQ0H-_Vl6");
+  
+  
+      const contractaddress = "0x35f165998fd821e5f8a474ffe9e4c23bd622d14c";
+      const abi = [
+        {
+          "type": "function",
+          "name": "owner",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "address",
+              "name": "",
+              "internalType": "address"
+            }
+          ],
+          "stateMutability": "view"
+        }
+      ];
+  
+      // Create a contract factory using the ABI and bytecode
+      const contract = new ethers.Contract(contractaddress, abi, provider);
+  
+      
+      const call = await contract.owner();
+
+      setOwner(call);
+      
+      console.log(call);
+    } catch (error) {
+      console.error(error);
+    } 
+  };
+
+
   const TokenStartTime = async () => {
       try {
         setLoading(true);
@@ -230,7 +379,7 @@ const MyPage = () => {
         const signer = provider.getSigner();
     
     
-        const contractaddress = "0x5be5e22728b864cd5a80306e45b4f569ad151f62";
+        const contractaddress = "0x72e55fF6B9e4c197CDECBef057F5a660aA3c8222";
         const abi = [
           {
               "type": "function",
@@ -415,7 +564,7 @@ const MyPage = () => {
 
 
 
-{/* airdrop  */}
+{/* airdrop  
 
 
 <div className=" text-white p-4" style={{background:'rgba(22,24,28,1)',borderRadius:'20px',marginBottom:'30px'}}>
@@ -446,9 +595,52 @@ const MyPage = () => {
     </div>
 
 
+*/}
+
+<div className=" text-white p-4" style={{background:'rgba(22,24,28,1)',borderRadius:'20px',marginBottom:'30px'}}>
+      
+
+      <div className="mb-4">
+        <p className="text-sm font-semibold mb-2">Withdraw BNB</p>
+        <div className=" p-2 rounded-md flex justify-between items-center" style={{background:'rgba(34,36,41,1)',border:'1px solid #3e424ab3'}} >
+         
+          <button className="bg-gray-700 text-white px-3 py-1 rounded-md" onClick={WithdrawBNB} >Send</button>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <p className="text-sm font-semibold mb-2">Withdraw USDT</p>
+        <div className=" p-2 rounded-md flex justify-between items-center" style={{background:'rgba(34,36,41,1)',border:'1px solid #3e424ab3'}} >
+         
+          <button className="bg-gray-700 text-white px-3 py-1 rounded-md" onClick={Withdrawusdt} >Send</button>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <p className="text-sm font-semibold mb-2">Set Referal Percentage</p>
+        <div className=" p-2 rounded-md flex justify-between items-center" style={{background:'rgba(34,36,41,1)',border:'1px solid #3e424ab3'}} >
+          <input
+            type="text"
+            style={{background:'rgba(84,88,98,1)',padding:"10px",borderRadius:'5px',width:'9%',marginRight:'20px'}}
+            value={referrer}
+            onChange={(e) => setReferrer(e.target.value)}
+            placeholder="Enter Referrer Percentage"
+            className="bg-transparent text-white placeholder-gray-900 outline-none flex-grow"
+          />
+           <input
+            type="text"
+            style={{background:'rgba(84,88,98,1)',padding:"10px",borderRadius:'5px',width:'9%',marginRight:'20px'}}
+            value={reffered}
+            onChange={(e) => setReffered(e.target.value)}
+            placeholder="Enter Reffered Percentage"
+            className="bg-transparent text-white placeholder-gray-900 outline-none flex-grow"
+          />
+          <button className="bg-gray-700 text-white px-3 py-1 rounded-md" onClick={ChangeReferalPercent} >Send</button>
+        </div>
+      </div>
 
 
-
+    </div>
 
        
       </Modal>
