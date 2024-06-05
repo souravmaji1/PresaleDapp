@@ -9,7 +9,7 @@ import { HamburgerMenu } from "./design/Header";
 import { useState } from "react";
 import AdminSection from './Admin';
 import Logo from '../assets/logo.png';
-import { ConnectButton } from "thirdweb/react";
+
 import { client } from "../client";
 import { chain } from "../chain";
 import {  getContract, prepareContractCall, sendTransaction, resolveMethod} from "thirdweb";
@@ -127,10 +127,6 @@ const Header = () => {
 
 
 
-<ConnectButton
-        client={client}
-        chain={chain}
-      />
 
 
 

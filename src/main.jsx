@@ -8,9 +8,9 @@ import { ThirdwebProvider } from "thirdweb/react";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Router>
-      <ThirdwebProvider>
+   
          <App />
-      </ThirdwebProvider>
+     
     </Router>
   </React.StrictMode>
 );

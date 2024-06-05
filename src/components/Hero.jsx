@@ -12,21 +12,22 @@ import { ethers } from 'ethers';
 import { useState } from "react";
 import { keccak256 } from 'js-sha3';
 
-import {  getContract, prepareContractCall, sendTransaction, resolveMethod} from "thirdweb";
-import { useActiveAccount } from "thirdweb/react";
-import { useSendTransaction } from "thirdweb/react";
-import { chain } from "../chain";
-import { client } from "../client";
+//import {  getContract, prepareContractCall, sendTransaction, resolveMethod} from "thirdweb";
+//import { useActiveAccount } from "thirdweb/react";
+//import { useSendTransaction } from "thirdweb/react";
+//import { chain } from "../chain";
+//import { client } from "../client";
 import abi from './abi.json';
 import { maincontract,usdtcontract } from "../constants/constants";
-
+//import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { CrossmintPayButton } from "@crossmint/client-sdk-react-ui";
 
 const Hero = () => {
   const parallaxRef = useRef(null);
 
   const [status, setStatus] = useState('');
     const [provider, setProvider] = useState(null);
-   // const [account, setAccount] = useState('');
+    const [account, setAccount] = useState('');
     const [amount, setAmount] = useState("");
     const [usdcamount, setUsdcAmount] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("ethreferal");
@@ -35,11 +36,44 @@ const Hero = () => {
     const [usdcreferalcode, setUsdcReferal] = useState("");
     const [userreferalcode,setUserReferalCode] = useState("");
 
-    const account = useActiveAccount();
+    const [ walletaddress, setWalletaddress] = useState("");
 
-    const { mutate: sendTransaction, isError } = useSendTransaction();
+  //  const account = useActiveAccount();
 
+   // const { mutate: sendTransaction, isError } = useSendTransaction();
+
+   const connectWallet = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        handleAccountsChanged(accounts);
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      alert('Please install MetaMask!');
+    }
+  };
   
+  
+  
+  const disconnectWallet = () => {
+    setAccount('');
+    setStatus('Not Connected');
+  };
+  
+  const handleAccountsChanged = (accounts) => {
+    if (accounts.length === 0) {
+      console.log('Please connect to MetaMask.');
+      disconnectWallet();
+    } else {
+      setAccount(accounts[0]);
+      setStatus('Connected');
+    }
+  };
+
+    
   
 
     const FetchReferalcode = async () => {
@@ -49,7 +83,7 @@ const Hero = () => {
         const provider = new ethers.providers.JsonRpcProvider("https://opt-sepolia.g.alchemy.com/v2/2Z8nGJ_Xw4fdJJfv33GORr5Cdjzmm-41");
     
     
-        const contractaddress = "0x6d7E12f200fe00dcc355E78eB643f7063e091520";
+        const contractaddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
         const abi = [
           {
             "type": "function",
@@ -89,6 +123,30 @@ const Hero = () => {
     const GenerateReferalCode = async () => {
       try {
         setLoading(true);
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+
+        const abi = [
+          {
+            "type": "function",
+            "name": "setReferralCode",
+            "inputs": [
+              {
+                "type": "bytes32",
+                "name": "_referralCode",
+                "internalType": "bytes32"
+              }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+          }
+        ]
+    
+    
+        const contractaddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
+
+        const contract = new ethers.Contract(contractaddress, abi, signer);
         
     
         const referralCodeHash = '0x' + keccak256(account.address);
@@ -96,19 +154,19 @@ const Hero = () => {
         console.log(referralCodeHash);
 
 
-      //  const call = await contract.setReferralCode(referralCodeHash);
+       const call = await contract.setReferralCode(referralCodeHash);
 
-      const transaction = await prepareContractCall({ 
-        contract: maincontract, 
-        method: resolveMethod("setReferralCode"), 
-        params: [referralCodeHash]
-      });
-  
-      const transact = await sendTransaction(transaction);
-      console.log(transact);
+     // const transaction = await prepareContractCall({ 
+    //    contract: maincontract, 
+    //    method: resolveMethod("setReferralCode"), 
+    //    params: [referralCodeHash]
+    //  });
+  //
+    //  const transact = await sendTransaction(transaction);
+    //  console.log(transact);
 
 
-      //  console.log(call);
+       console.log(call);
       } catch (error) {
         console.error(error);
       } finally {
@@ -117,43 +175,63 @@ const Hero = () => {
     };
   
    
-    const BuyTokens = async () => {
+   
+
+    const BuyTokensWithEthReferal = async () => {
       try {
         setLoading(true);
-        // Deploy the compiled contract using MetaMask
+       
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-    
-    
-        const contractaddress = "0x6d7E12f200fe00dcc355E78eB643f7063e091520";
+        const contractaddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
         const abi = [
           {
             "type": "function",
-            "name": "buyTokensBNB",
+            "name": "buyTokensWithBNBAndReferral",
             "inputs": [
               {
                 "type": "uint256",
                 "name": "_tokenAmount",
                 "internalType": "uint256"
+              },
+              {
+                "type": "bytes32",
+                "name": "_referralCode",
+                "internalType": "bytes32"
               }
             ],
             "outputs": [],
             "stateMutability": "payable"
           }
-        ];
-    
+        ]
         // Create a contract factory using the ABI and bytecode
         const contract = new ethers.Contract(contractaddress, abi, signer);
     
          // Calculate the value to send in Wei
-         const valueInWei = ethers.utils.parseEther((amount * 0.0017).toString()); // Convert amount to Wei as a string
+         const valueInWei = ethers.utils.parseEther((amount).toString()); // Convert amount to Wei as a string
       
          // Set the overrides for sending Ethereum
          const overrides = {
-             value: valueInWei
+            value: valueInWei
          };
+
+          // Check if the referral code is provided
+       const referralCode = ethreferalcode || "0x0000000000000000000000000000000000000000000000000000000000000000";
   
-        const call = await contract.buyTokensBNB(amount,overrides);
+        const call = await contract.buyTokensWithBNBAndReferral(valueInWei,referralCode,overrides);
+
+
+     //   const transaction = await prepareContractCall({ 
+      //    contract: maincontract, 
+      //    method: resolveMethod("buyTokensWithBNBAndReferral"), 
+      //    params: [valueInWei, referralCode],
+      //    value: valueInWei
+     //   });
+    //
+      //  const transact = await sendTransaction(transaction);
+    
+
+     //   console.log(transact);
 
         
         console.log(call);
@@ -164,67 +242,56 @@ const Hero = () => {
     }
     };
 
-
-
-    const BuyTokensWithEthReferal = async () => {
-      try {
-        setLoading(true);
-       
-  
-        // Create a contract factory using the ABI and bytecode
-       // const contract = new ethers.Contract(contractaddress, abi, signer);
-    
-         // Calculate the value to send in Wei
-         const valueInWei = ethers.utils.parseEther((amount).toString()); // Convert amount to Wei as a string
-      
-         // Set the overrides for sending Ethereum
-       //  const overrides = {
-       //      value: valueInWei
-      //   };
-
-          // Check if the referral code is provided
-       const referralCode = ethreferalcode || "0x0000000000000000000000000000000000000000000000000000000000000000";
-  
-      //  const call = await contract.buyTokensWithBNBAndReferral(valueInWei,referralCode,overrides);
-
-
-        const transaction = await prepareContractCall({ 
-          contract: maincontract, 
-          method: resolveMethod("buyTokensWithBNBAndReferral"), 
-          params: [valueInWei, referralCode],
-          value: valueInWei
-        });
-    
-        const transact = await sendTransaction(transaction);
-        console.log(transact);
-
-        
-        //console.log(call);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false); // Reset loading to false after operation completes
-    }
-    };
-
     const approveUSDC = async () => {
       try {
- 
-    
-        const loanContractAddress = "0x9F878d9309D7f7fe1d86099731FFa1242F270C0d";
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contractaddress = "0xE76e8f3aA088E92aD86981134ca24E27D32397aB";
+        const abi = [
+          {
+            "type": "function",
+            "name": "approve",
+            "inputs": [
+              {
+                "type": "address",
+                "name": "spender",
+                "internalType": "address"
+              },
+              {
+                "type": "uint256",
+                "name": "value",
+                "internalType": "uint256"
+              }
+            ],
+            "outputs": [
+              {
+                "type": "bool",
+                "name": "",
+                "internalType": "bool"
+              }
+            ],
+            "stateMutability": "nonpayable"
+          }
+        ]
+
+        const contract = new ethers.Contract(contractaddress, abi, signer);
+
+        const loanContractAddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
   
         const weiAmount = usdcamount * 10**6;
+
+        const call = await contract.approve(loanContractAddress,weiAmount);
   
         console.log(weiAmount)
 
-        const transaction = await prepareContractCall({ 
-          contract: usdtcontract, 
-          method: resolveMethod("approve"), 
-          params: [loanContractAddress,weiAmount],
-        });
+     //   const transaction = await prepareContractCall({ 
+     //     contract: usdtcontract, 
+     //     method: resolveMethod("approve"), 
+      //    params: [loanContractAddress,weiAmount],
+      //  });
     
-        const transact = await sendTransaction(transaction);
-        console.log(transact);
+      //  const transact = await sendTransaction(transaction);
+      //  console.log(transact);
     
         console.log("Token approval successful!");
       } catch (error) {
@@ -235,22 +302,48 @@ const Hero = () => {
     const BuyTokensWithUSDCReferal = async () => {
       try {
         setLoading(true);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contractaddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
+
+        const abi = [
+          {
+            "type": "function",
+            "name": "buyTokensWithUSDTReferal",
+            "inputs": [
+              {
+                "type": "uint256",
+                "name": "amount",
+                "internalType": "uint256"
+              },
+              {
+                "type": "bytes32",
+                "name": "_referralCode",
+                "internalType": "bytes32"
+              }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+          }
+        ]
+
+        const contract = new ethers.Contract(contractaddress, abi, signer);
      
            // Check if the referral code is provided
        const referralCode = usdcreferalcode || "0x0000000000000000000000000000000000000000000000000000000000000000";
     
         
-      //  const call = await contract.buyTokensWithUSDTReferal(usdcamount,referralCode);
-      const transaction = await prepareContractCall({ 
-        contract: maincontract, 
-        method: resolveMethod("buyTokensWithUSDTReferal"), 
-        params: [usdcamount, referralCode],
-      });
+        const call = await contract.buyTokensWithUSDTReferal(usdcamount,referralCode);
+    //  const transaction = await prepareContractCall({ 
+    //    contract: maincontract, 
+    //    method: resolveMethod("buyTokensWithUSDTReferal"), 
+     //   params: [usdcamount, referralCode],
+     // });
   
-      const transact = await sendTransaction(transaction);
-      console.log(transact);
-        
-      //  console.log(call);
+     // const transact = await sendTransaction(transaction);
+    //  console.log(transact);
+    //    
+        console.log(call);
       } catch (error) {
         console.error(error);
       } finally {
@@ -264,31 +357,39 @@ const Hero = () => {
         setLoading(true);
 
         // Deploy the compiled contract using MetaMask
-       // const provider = new ethers.providers.Web3Provider(window.ethereum);
-      //  const signer = provider.getSigner();
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
     
     
-       // const contractaddress = "0x6d7E12f200fe00dcc355E78eB643f7063e091520";
-      //  const abi = [
+        const contractaddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
+       const abi = [
+        {
+          "type": "function",
+          "name": "claimTokens",
+          "inputs": [],
+          "outputs": [],
+          "stateMutability": "nonpayable"
+        }
+       ]
       
     
         // Create a contract factory using the ABI and bytecode
-     //   const contract = new ethers.Contract(contractaddress, abi, signer);
+       const contract = new ethers.Contract(contractaddress, abi, signer);
     
         
-       // const call = await contract.claimTokens();
+       const call = await contract.claimTokens();
 
-       const transaction = await prepareContractCall({ 
-        contract: maincontract, 
-        method: resolveMethod("claimTokens"), 
-        params: [],
-      });
+      // const transaction = await prepareContractCall({ 
+     //   contract: maincontract, 
+     //   method: resolveMethod("claimTokens"), 
+     //   params: [],
+     // });
   
-      const transact = await sendTransaction(transaction);
-      console.log(transact);
-
+     // const transact = await sendTransaction(transaction);
+//console.log(transact);
+//
         
-     //   console.log(call);
+        console.log(call);
       } catch (error) {
         console.error(error);
       } finally {
@@ -302,21 +403,37 @@ const Hero = () => {
         setLoading(true);
 
       
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
     
-        
-      //  const call = await contract.withdrawReferralReward();
+    
+        const contractaddress = "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9";
 
-      const transaction = await prepareContractCall({ 
-        contract: maincontract, 
-        method: resolveMethod("withdrawReferralReward"), 
-        params: [],
-      });
+        const abi = [
+          {
+            "type": "function",
+            "name": "withdrawReferralReward",
+            "inputs": [],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+          }
+        ]
+
+        const contract = new ethers.Contract(contractaddress, abi, signer);
+        
+        const call = await contract.withdrawReferralReward();
+
+     // const transaction = await prepareContractCall({ 
+     //   contract: maincontract, 
+     //   method: resolveMethod("withdrawReferralReward"), 
+     //   params: [],
+     // });
   
-      const transact = await sendTransaction(transaction);
-      console.log(transact);
+     // const transact = await sendTransaction(transaction);
+     // console.log(transact);
 
         
-      //  console.log(call);
+        console.log(call);
       } catch (error) {
         console.error(error);
       } finally {
@@ -326,47 +443,7 @@ const Hero = () => {
 
 
 
-    const BuyTokenswithUSDC = async () => {
-      try {
-        setLoading(true);
-
-        await approveUSDC();
-        // Deploy the compiled contract using MetaMask
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
     
-    
-        const contractaddress = "0x6d7E12f200fe00dcc355E78eB643f7063e091520";
-        const abi = [
-          {
-            "type": "function",
-            "name": "buyTokensWithUSDT",
-            "inputs": [
-              {
-                "type": "uint256",
-                "name": "amount",
-                "internalType": "uint256"
-              }
-            ],
-            "outputs": [],
-            "stateMutability": "nonpayable"
-          }
-        ];
-    
-        // Create a contract factory using the ABI and bytecode
-        const contract = new ethers.Contract(contractaddress, abi, signer);
-    
-  
-        const call = await contract.buyTokensWithUSDT(usdcamount);
-
-       
-        console.log(call);
-      } catch (error) {
-        console.error(error);
-      }  finally {
-        setLoading(false); // Reset loading to false after operation completes
-    }
-    };
 
     const handlePaymentMethodChange = (method) => {
         setPaymentMethod(method);
@@ -423,13 +500,13 @@ const Hero = () => {
               <div className="flex justify-center">
   <div className="max-w-md">
     <div className=" p-6 rounded-[1.375rem] border border-gray-800" style={{background:'rgba(14,12,21,1)'}}>
-      <h2 className="text-white font-bold mb-2 text-xl md:text-2xl">Buy $COGW Token</h2>
+      <h2 className="text-white font-bold mb-2 text-xl md:text-2xl">Buy $BFC Token</h2>
       <p className="text-green-300 text-sm">Stage 7 • LIVE</p>
       <div className="bg-green-500 rounded-md h-2 mt-4">
         <div className="bg-green-300 h-full rounded-md" style={{ width: '87.586%' }}></div>
       </div>
       <div className="flex justify-between mt-4 flex-col md:flex-row">
-        <p className="text-white mb-2 md:mb-0">1$COGW=$0.95</p>
+        <p className="text-white mb-2 md:mb-0">1$BFC=$1</p>
         <p className="text-white">LISTING PRICE = $0.065</p>
       </div>
       <div className="border border-gray-700 rounded-md p-4 mt-4 flex">
@@ -455,14 +532,18 @@ const Hero = () => {
       <div className="mt-4 flex flex-col md:flex-row" style={{justifyContent:'center'}}>
         <button className="bg-purple-600 text-white hover:bg-purple-700 mb-2 md:mb-0 md:mr-2 flex items-center px-4 py-2"  onClick={() => handlePaymentMethodChange('ethreferal')}  >
           <i className="fab fa-ethereum mr-2"></i>
-          BUY WITH BNB
+          BUY WITH MATIC
         </button>
+        
+
         <button className="bg-green-500 text-white hover:bg-green-600 flex items-center px-4 py-2" onClick={() => handlePaymentMethodChange('usdcreferal')} >
           <i className="fas fa-dollar-sign mr-2"></i>
           BUY WITH USDT
-        </button>
+</button> 
       </div>
       <div className="mt-4 flex flex-col md:flex-row items-center">
+
+    
       {paymentMethod === 'eth' ? (
         <>
          <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-0 " value={amount} type="text" placeholder="Enter Amount (BNB)" onChange={(e) => setAmount(e.target.value)} style={{ width: '100%' }} />
@@ -478,6 +559,22 @@ const Hero = () => {
         <div>
         <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-2" value={amount} type="text" placeholder="Enter Amount (BNB)" onChange={(e) => setAmount(e.target.value)} style={{ width: '100%' }} />
         <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-2" value={ethreferalcode} type="text" placeholder="Enter Referal Code" onChange={(e) => setEthReferal(e.target.value)} style={{ width: '100%' }} />
+        <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-2" value={walletaddress} type="text" placeholder="Enter Your Wallet Address" onChange={(e) => setWalletaddress(e.target.value)} style={{ width: '100%' }} />
+
+
+        
+
+<CrossmintPayButton
+className="w-full"
+collectionId="be921c27-7caa-4253-8efc-8da933a62597"
+projectId="ea126e6d-8bae-4f49-93c7-bcbc58d61e44"
+                mintConfig={{"totalPrice":(amount).toString(),"_tokenAmount":(amount * 1e18).toString(),"_useraddress": walletaddress,"_referralCode": ethreferalcode || "0x0000000000000000000000000000000000000000000000000000000000000000"}}
+                
+                checkoutProps={{"paymentMethods":["fiat"]}}
+            />
+
+
+
         </div>
         </>
       ) : paymentMethod === 'usdcreferal' ? (
@@ -485,14 +582,49 @@ const Hero = () => {
          <div>
         <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-2" value={usdcamount} type="text" placeholder="Enter Amount (USDT)" onChange={(e) => setUsdcAmount(e.target.value)} style={{ width: '100%' }} />
         <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-2" value={usdcreferalcode} type="text" placeholder="Enter Referal Code" onChange={(e) => setUsdcReferal(e.target.value)} style={{ width: '100%' }} />
+        <input className="text-white bg-gray-700 border border-gray-700 rounded-md px-4 py-2 mb-2 md:mb-2" value={walletaddress} type="text" placeholder="Enter Your Wallet Address" onChange={(e) => setWalletaddress(e.target.value)} style={{ width: '100%' }} />
+        
+
+        <CrossmintPayButton
+        className="w-full"
+        collectionId="f982b726-de44-4375-867e-8aa4cd8077cc"
+        projectId="b473b8a1-7bac-4a18-8732-01d5ecd0e193"
+                mintConfig={{"totalPrice":(amount).toString(),"amount":(amount * 10 ** 6).toString(),"_useraddress": walletaddress,"_referralCode": ethreferalcode || "0x0000000000000000000000000000000000000000000000000000000000000000"}}
+                environment="staging"
+                checkoutProps={{"paymentMethods":["fiat"]}}
+                
+            />
+
+
+
+
+
+        
         </div>
     
+        
+
+
+
+
         </>
       ) : null} 
+     
       </div>
     
      
-      
+      {!account ? (
+        <>
+         {/* <button
+    className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4"
+      onClick={connectWallet}
+    >
+      Connect Wallet
+      </button> */}
+        </>
+  
+  ) : (
+    <>
   {paymentMethod === 'eth' ? (
     <>
       <button className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4" onClick={BuyTokens}>BUY NOW WITH BNB</button>
@@ -552,7 +684,7 @@ const Hero = () => {
     </>
   ) : paymentMethod === 'ethreferal' ? (
     <>
-    <button className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4" onClick={BuyTokensWithEthReferal}>BUY NOW WITH BNB</button>
+     {/*<button className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4" onClick={BuyTokensWithEthReferal}>BUY NOW WITH BNB</button>
 
     <button className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4" onClick={GenerateReferalCode}>Generate Referal Code</button>
 
@@ -561,7 +693,7 @@ const Hero = () => {
       <button className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4" onClick={ClaimTokens}>Claim Tokens</button>
 
       <button className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4" onClick={ClaimRewards}>Claim Rewards</button>
-
+  */}
 
     {userreferalcode && (
   <div className="mt-4 flex flex-col items-center">
@@ -609,16 +741,14 @@ const Hero = () => {
       )}
     </>
   ) : null}
- 
 
-{/*<CrossmintPayButton
-                collectionId="430b3a26-201e-4fdb-9816-80c93bf8ee8f"
-                className="bg-purple-600 text-white hover:bg-purple-700 w-full py-2 mt-4"
-                projectId="c09eb65f-0d93-476b-aff2-d5b15301aac9"
-                mintConfig={{"totalPrice":(amount * 0.001).toString(),"_tokenAmount":amount.toString()}}
-                environment="staging"
-                checkoutProps={{"paymentMethods":[]}}
-/> */}
+  </>
+  )}
+
+
+
+
+
 
       <div className="mt-4 flex justify-center">
         

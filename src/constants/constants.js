@@ -7,7 +7,7 @@ import abi from '../components/abi.json';
 export const maincontract = getContract({
     client: client,
     chain: chain,
-    address: "0x9F878d9309D7f7fe1d86099731FFa1242F270C0d",
+    address: "0x5Af23C7c84765eF5bC86fED70fb6c08c862759D9",
     abi: abi,
    });
 
